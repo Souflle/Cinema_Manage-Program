@@ -9,6 +9,7 @@ def WhichMovie(mv_name,time):
 	for i in Movie.Movie_info[mv_name]:
 		if i[0]==time:
 			return i[1]
+	return 0
 	
 
 def mv_reserve(Movie_ID):
@@ -22,9 +23,14 @@ def mv_reserve(Movie_ID):
 		mv_4.Reserve()
 	elif Movie_ID==5:
 		mv_5.Reserve()
-	else :
-		ID_flag=0
-		print("잘못 입력하셨습니다. 다시 입력해주세요")
+	elif Movie_ID==6:
+		mv_6.Reserve()
+	elif Movie_ID==7:
+		mv_7.Reserve()
+	elif Movie_ID==8:
+		mv_8.Reserve()
+	elif Movie_ID==9:
+		mv_9.Reserve()	
 
 class Movie:
 	income=0
@@ -68,27 +74,35 @@ class EachMovie(Movie):
 			print("\n")
 	def Reserve(self):
 		reserve_count=0
-		client_num=input("인원을 입력해주세요. 아이/청소년/어른")
-		a=client_num.split("/")
-		total_member=int(a[0])+int(a[1])+int(a[2])
-		total_price=5000*int(a[0])+7000*int(a[1])+8000*int(a[2])
+		memb_flag=0
+		while memb_flag==0:
+			client_num=input("인원을 입력해주세요. 아이/청소년/어른")
+			a=client_num.split("/")
+			if member_check(a)==1:
+				memb_flag=1
+				total_member=int(a[0])+int(a[1])+int(a[2])
+				total_price=5000*int(a[0])+7000*int(a[1])+8000*int(a[2])
 		if total_member>self.LeftSeat():
 			print("잔여좌석이 없습니다. 다른 영화를 예약해주세요")
-			time.sleep(5)
-			MainMenu()
+			time.sleep(3)
+			Main_Menu()
 		self.showRoom()
 		while reserve_count<total_member :
 			temp=input("좌석을 선택해주세요(예시:A01):")
 			tmp=temp.split("0")
 			for i in self.Movie_room:
-				if i[0]==(tmp[0]):
-					if i[int(tmp[1])]==0:
-						i[int(tmp[1])]='T'
-						reserve_count+=1
-						break
-					else :
-						print("이미 찬 자리입니다. 다른자리를 선택해주세요")  ## 리스트 범위 밖이면 다시 출력하도록
-						break
+				if (Room_check(tmp)==1):
+					if i[0]==(tmp[0]):
+						if i[int(tmp[1])]==0:
+							i[int(tmp[1])]='T'
+							reserve_count+=1
+							print("예약되었습니다")
+							break
+						else :
+							print("이미 찬 자리입니다. 다른자리를 선택해주세요")  ## 리스트 범위 밖이면 다시 출력하도록
+							break
+				else:
+					break
 		print("요금은 총 %d입니다. 결제하시겠습니까(y/n)"%total_price)
 		payment=input()
 		if payment=="y":
@@ -97,7 +111,7 @@ class EachMovie(Movie):
 			Movie.income+=total_price
 		else :
 			self.PayFail()
-		MainMenu()
+		Main_Menu()
 
 	def LeftSeat(self):
 		self.left=0
@@ -115,12 +129,15 @@ class EachMovie(Movie):
 					if self.Movie_room[i][j]=='T':
 						self.Movie_room[i][j]=0
 
-
 #ok
 def Time_Menu():
+	name_flag=0
 	os.system("clear")
 	Movie.showList()
-	mv_choice=input()
+	while name_flag==0:
+			mv_choice=input("영화를 선택해주세요 : ")
+			if name_check(mv_choice)==1:
+				name_flag=1
 	Movie.timeList(mv_choice)
 	onemore=input("다른 영화의 시간표를 보시겠습니까? (y/n)")
 	if onemore=="y":
@@ -132,10 +149,25 @@ def name_check(mv_choice):
 	try:
 		Movie.Movie_info[mv_choice]
 	except KeyError :
-		print("잘못 입력하셨습니다. 다시 입력해주세요")
+		print("영화제목을 잘못입력했습니다. 다시 입력해주세요")
 		return 0
 	else: 
 		return 1
+def Room_check(tmp):
+	try:
+		if 0<int(tmp[1]) & int(tmp[1])<6:
+			return 1
+	except IndexError:
+		print ("올바른 형식으로 자리를 입력해주세요")
+		return 0
+def member_check(a):
+	try :
+		total_member=int(a[0])+int(a[1])+int(a[2])
+		return 1
+	except ValueError:
+		print("올바른 형식으로 입력해주세요")
+		return 0
+
 	
 	
 mv_1=EachMovie("Avengers",1,"08:00",1)
@@ -152,7 +184,7 @@ mv_9=EachMovie("Dr_Strange",3,"20:00",9)
 def Main_Menu():
 	os.system("clear")
 	name_flag=0
-	time_flag=0
+	ID_flag=0
 	text=["Menu","1.Reserve","2.Show Time","3.Total income","4.Exit"]
 	print("-"*40)
 	print(f"{text[0]:^40}")
@@ -169,21 +201,25 @@ def Main_Menu():
 			if name_check(mv_choice)==1:
 				name_flag=1
 		Movie.timeList(mv_choice)
-		while time_flag==0:
+		while ID_flag==0:
 			time_choice=input("시간을 선택해주세요 : ")
-			mv_reserve(WhichMovie(mv_choice,time_choice)) #Print Seat 
+			if WhichMovie(mv_choice, time_choice)!=0:
+				ID_flag=1
+				mv_reserve(WhichMovie(mv_choice,time_choice)) 
+			else :
+				print("시간을 다시 입력해주세요")
 	elif choice=="2":
 		Time_Menu()
 	elif choice=="3":
 		os.system("clear")
 		Movie.show_income()
-		time.sleep(5)
+		time.sleep(3)
 		Main_Menu()
 	elif choice=="4":
+		print("pass")
 		pass
 	else:
 		print("다시 입력해주세요")
 		Main_Menu()
 	
 Main_Menu()
-
